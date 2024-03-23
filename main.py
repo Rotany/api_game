@@ -15,6 +15,10 @@ mongo_client = MongoManager(
     "cave_game"
     )
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"msg": "success"})
+
 @app.route("/best-scores", methods=["GET"])
 def get_best_scores():
     best_scores = mongo_client.list_best_scores(10)
