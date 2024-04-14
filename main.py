@@ -83,7 +83,11 @@ def get_points():
 def login():
     data = request.json
     usuario = data.get('username')
+    if not data.get("username"):
+        return jsonify({"msg": "username is required"}), 400
     contrasena = data.get('password')
+    if not data.get("password"):
+        return jsonify({"msg": "password is required"}), 400
     is_valid = mongo_client.validar_usuario(usuario,contrasena)
     return jsonify({"is_valid": is_valid})
 
@@ -112,5 +116,5 @@ def create_point():
     point_id = mongo_client.insert_document("points", point_model.to_dict())
     return jsonify({"msg": "Point created successfully", "point_id": str(point_id)}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
