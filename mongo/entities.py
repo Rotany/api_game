@@ -3,10 +3,11 @@ import datetime
 
 class User:
     def __init__(
-        self, email: str, password: str
+        self, email: str, password: str, username: str
     ):
         self.email = email
         self.password = password
+        self.username = username
 
     def __str__(self):
         return f"{self.email}"

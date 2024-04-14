@@ -1,3 +1,5 @@
 venv
 __pycache__
 .env
+myenv
+env_name
