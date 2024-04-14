@@ -1,4 +1,5 @@
 from flask import jsonify, Flask, request
+from flask_cors import CORS
 from mongo.mongo_client import MongoManager
 from mongo.entities import User, FinalScore, Points
 from mongo.models import UserModel, FinalScoreModel, PointsModel
@@ -8,6 +9,7 @@ from bson import ObjectId
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 mongo_client = MongoManager(
     os.environ.get("MONGO_URL"),
@@ -40,8 +42,11 @@ def create_user():
         return jsonify({"msg": "email is required"}), 400
     if not data.get("password"):
         return jsonify({"msg": "password is required"}), 400
+    if not data.get("username"):
+        return jsonify({"msg": "username is required"}), 400
+    
 
-    user_created = User(data["email"], data["password"])
+    user_created = User(data["email"], data["password"], data["username"])
     user_model = UserModel(user_created)
     user_id = mongo_client.insert_document("users", user_model.to_dict())
     return jsonify({"msg": "User created successfully", "user_id": str(user_id)})
@@ -65,11 +70,27 @@ def create_final_score():
     final_score_id = mongo_client.insert_document("final_scores", final_score_model.to_dict())
     return jsonify({"msg": "Final score created successfully", "final_score_id": str(final_score_id)}), 200
 
-@app.route("/points", methods=["GET"])
+@app.route("/points", methods=["POST"])
 def get_points():
-    points = mongo_client.list_points(10)
+    data = request.json
+    if not data.get("email"):
+        return jsonify({"msg": "email is required"}), 400
+    points = mongo_client.list_points(data["email"],10)
     points = [document_to_points(point) for point in points]
     return jsonify({"points": points})
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    usuario = data.get('username')
+    if not data.get("username"):
+        return jsonify({"msg": "username is required"}), 400
+    contrasena = data.get('password')
+    if not data.get("password"):
+        return jsonify({"msg": "password is required"}), 400
+    is_valid = mongo_client.validar_usuario(usuario,contrasena)
+    return jsonify({"is_valid": is_valid})
+
 
 @app.route("/points", methods=["POST"])
 def create_point():
@@ -94,3 +115,6 @@ def create_point():
 
     point_id = mongo_client.insert_document("points", point_model.to_dict())
     return jsonify({"msg": "Point created successfully", "point_id": str(point_id)}), 200
+
+# if __name__ == '__main__':
+#     app.run(debug=True)

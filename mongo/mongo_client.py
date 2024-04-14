@@ -42,7 +42,7 @@ class MongoManager:
     def __list_documents_with_pipeline(self, collection, pipeline):
         return self.mongo_db[collection].aggregate(pipeline)
 
-    def list_best_scores(self, limit=10):
+    def list_best_scores(self, limit=5):
         pipeline = [
             {
                 "$lookup": {
@@ -65,9 +65,9 @@ class MongoManager:
                 }
             }
         ]
-        return self.__list_documents_with_pipeline("final_scores", pipeline)
+        return self.__list_documents_with_pipeline("final_score", pipeline)
 
-    def list_points(self, limit=10):
+    def list_points(self,email, limit=10):
         pipeline = [
             {
                 "$lookup": {
@@ -76,6 +76,11 @@ class MongoManager:
                     "foreignField": "_id",
                     "as": "user"
                 }
+            },
+            {
+             "$match": {
+                "user.email": email  # Filtrar por user_id
+             }
             },
             {
                 "$limit": limit
@@ -94,3 +99,14 @@ class MongoManager:
             }
         ]
         return self.__list_documents_with_pipeline("points", pipeline)
+    
+    def validar_usuario(self, usuario, contrasena):
+        # Buscar el usuario en la base de datos
+        usuario_encontrado = self.mongo_db['users'].find_one({'email': usuario})
+        if usuario_encontrado:
+            # Verificar la contraseña
+            if usuario_encontrado['password'] == contrasena:
+                # Si las contraseñas coinciden, devolver el usuario encontrado
+                return True
+        # Si el usuario no existe o la contraseña no coincide, devolver None
+        return False

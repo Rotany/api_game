@@ -2,7 +2,7 @@
 def document_to_user(document) -> dict:
     return {
         "_id": str(document["_id"]),
-        "email": document["email"],
+        "email": document["email"]
     }
 
 def document_to_final_score(document) -> dict:
