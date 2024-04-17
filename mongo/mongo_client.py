@@ -30,6 +30,9 @@ class MongoManager:
     def remove_document(self, collection, filter):
         self.mongo_db[collection].remove(filter)
     
+    def create_or_update_document(self, collection, filter, data):
+        self.mongo_db[collection].update_one(filter=filter, data=data, upsert=True)
+    
     def list_documents(self, collection, query, find_one, sort_by=None):
         collection = self.mongo_db[collection]
         if find_one:
