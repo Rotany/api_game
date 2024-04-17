@@ -31,7 +31,7 @@ class MongoManager:
         self.mongo_db[collection].remove(filter)
     
     def create_or_update_document(self, collection, filter, data):
-        result = self.mongo_db[collection].update_one(filter=filter, data=data, upsert=True)
+        result = self.mongo_db[collection].update_one(filter, {"$set": data}, upsert=True)
         return result.upserted_id or result.modified_count
     
     def list_documents(self, collection, query, find_one, sort_by=None):

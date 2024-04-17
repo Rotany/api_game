@@ -53,6 +53,10 @@ def create_user():
 
     user_model = UserModel(user_created)
     user_id = mongo_client.insert_document("users", user_model.to_dict())
+    points = Points(user_id=user_id, coins=10, level=1, time=1, hearts=5)
+    points_model = PointsModel(points)
+    mongo_client.create_or_update_document("points", {"user_id": ObjectId(user_id)}, data=points_model.to_dict())
+
     return jsonify({"msg": "User created successfully", "user_id": str(user_id)})
 
 @app.route("/final-scores", methods=["POST"])
@@ -84,7 +88,7 @@ def create_final_score():
     point_model = PointsModel(points)
 
     point_id = mongo_client.create_or_update_document(
-        "points", filter={"user_id": data["user_id"]}, data=point_model.to_dict()
+        "points", filter={"user_id": ObjectId(data["user_id"])}, data=point_model.to_dict()
     )
     final_score_id = mongo_client.insert_document(
         "final_scores", final_score_model.to_dict()
@@ -150,7 +154,7 @@ def create_point():
     points = Points(user["_id"], data["coins"], data["level"], data["time"], data["hearts"])
     point_model = PointsModel(points)
 
-    point_id = mongo_client.create_or_update_document("points", filter={"user_id": data["user_id"]}, data=point_model.to_dict())
+    point_id = mongo_client.create_or_update_document("points", filter={"user_id": ObjectId(data["user_id"])}, data=point_model.to_dict())
     return jsonify({"msg": "Point created successfully", "point_id": str(point_id)}), 200
 
 if __name__ == '__main__':
