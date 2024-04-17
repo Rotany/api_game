@@ -23,7 +23,7 @@ def home():
 
 @app.route("/best-scores", methods=["GET"])
 def get_best_scores():
-    best_scores = mongo_client.list_best_scores(10)
+    best_scores = mongo_client.list_best_scores(5)
     best_scores = [document_to_final_score(best_score) for best_score in best_scores]
     return jsonify({"best_scores": best_scores})
 
@@ -42,11 +42,9 @@ def create_user():
         return jsonify({"msg": "email is required"}), 400
     if not data.get("password"):
         return jsonify({"msg": "password is required"}), 400
-    if not data.get("username"):
-        return jsonify({"msg": "username is required"}), 400
     
 
-    user_created = User(data["email"], data["password"], data["username"])
+    user_created = User(data["email"], data["password"])
     user_model = UserModel(user_created)
     user_id = mongo_client.insert_document("users", user_model.to_dict())
     return jsonify({"msg": "User created successfully", "user_id": str(user_id)})
@@ -54,18 +52,26 @@ def create_user():
 @app.route("/final-scores", methods=["POST"])
 def create_final_score():
     data = request.json
-    if not data.get("user_id"):
-        return jsonify({"msg": "user_id is required"}), 400
+    email = data.get("email")
+    if not data.get("email"):
+        return jsonify({"msg": "email is required"}), 400
     if not data.get("score"):
         return jsonify({"msg": "score is required"}), 400
+    
+    user = mongo_client.list_documents("users", {
+        "email": email}, True
+    )
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
 
     find_user = mongo_client.list_documents("users", {
-        "_id": ObjectId(data["user_id"])}, True
+        "_id": ObjectId(user["_id"])}, True
     )
     if not find_user:
         return jsonify({"msg": "User not found"}), 404
 
-    final_score_created = FinalScore(data["user_id"], data["score"])
+    final_score_created = FinalScore(user["_id"], data["score"])
     final_score_model = FinalScoreModel(final_score_created)
     final_score_id = mongo_client.insert_document("final_scores", final_score_model.to_dict())
     return jsonify({"msg": "Final score created successfully", "final_score_id": str(final_score_id)}), 200
@@ -92,29 +98,38 @@ def login():
     return jsonify({"is_valid": is_valid})
 
 
-@app.route("/points", methods=["POST"])
+@app.route("/create-points", methods=["POST"])
 def create_point():
     data = request.json
-    if not data.get("user_id"):
-        return jsonify({"msg": "user_id is required"}), 400
+    email = data.get("email")
+    if not data.get("email"):
+        return jsonify({"msg": "email is required"}), 400
     if not data.get("coins"):
         return jsonify({"msg": "coins is required"}), 400
     if not data.get("level"):
         return jsonify({"msg": "level is required"}), 400
     if not data.get("hearts"):
         return jsonify({"msg": "hearts is required"}), 400
-
+    if not data.get("time"):
+        return jsonify({"msg": "time is required"}), 400
+    
+    user = mongo_client.list_documents("users", {
+        "email": email}, True
+    )
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+    
     find_user = mongo_client.list_documents("users", {
-        "_id": ObjectId(data["user_id"])}, True
+        "_id": ObjectId(user["_id"])}, True
     )
     if not find_user:
         return jsonify({"msg": "User not found"}), 404
 
-    points = Points(data["user_id"], data["coins"], data["level"], datetime.datetime.now(), data["hearts"])
+    points = Points(user["_id"], data["coins"], data["level"], data["time"], data["hearts"])
     point_model = PointsModel(points)
 
     point_id = mongo_client.insert_document("points", point_model.to_dict())
     return jsonify({"msg": "Point created successfully", "point_id": str(point_id)}), 200
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

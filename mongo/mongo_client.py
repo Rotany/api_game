@@ -65,7 +65,7 @@ class MongoManager:
                 }
             }
         ]
-        return self.__list_documents_with_pipeline("final_score", pipeline)
+        return self.__list_documents_with_pipeline("final_scores", pipeline)
 
     def list_points(self,email, limit=10):
         pipeline = [

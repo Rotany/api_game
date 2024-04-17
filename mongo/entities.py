@@ -20,7 +20,7 @@ class FinalScore:
 
 class Points:
     def __init__(
-        self, user_id: str, coins: int, level: int, time: datetime.datetime, hearts: int
+        self, user_id: str, coins: int, level: int,time: int, hearts: int
     ):
         self.user_id = user_id
         self.coins = coins
