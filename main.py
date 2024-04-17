@@ -44,7 +44,13 @@ def create_user():
         return jsonify({"msg": "password is required"}), 400
     
 
+
+    users_with_existing_email = mongo_client.list_documents("users", {"email": data["email"]}, True)
+    if users_with_existing_email:
+        raise Exception("This email is already registed")
+
     user_created = User(data["email"], data["password"])
+
     user_model = UserModel(user_created)
     user_id = mongo_client.insert_document("users", user_model.to_dict())
     return jsonify({"msg": "User created successfully", "user_id": str(user_id)})
