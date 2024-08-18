@@ -88,7 +88,7 @@ def create_final_score():
     point_model = PointsModel(points)
 
     point_id = mongo_client.create_or_update_document(
-        "points", filter={"user_id": ObjectId(user["_id"])}, data=point_model.to_dict()
+        collection="points", filter={"user_id": ObjectId(user["_id"])}, data=point_model.to_dict()
     )
     final_score_id = mongo_client.insert_document(
         "final_scores", final_score_model.to_dict()
